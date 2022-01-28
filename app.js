@@ -24,6 +24,7 @@ const schema = {
 const User = mongoose.model("users", schema);
 
 let message = "";
+let user;
 
 //Controler
 app.get("/register", (req, res) => {
@@ -54,13 +55,17 @@ app.post("/register", (req, res) => {
 });
 
 app.get("/", async (req, res) => {
-  const users = await User.find();
-  let html = `<a href="/logout">Salir</a><table><thead><tr><th>Name</th><th>Email</th></tr></thead><tbody>`;
-  users.forEach((user) => {
-    html += `<tr><td>${user.name}</td><td>${user.email}</td></tr>`;
-  });
-  html += `</tbody></table>`;
-  res.send(html);
+  if (user) {
+    const users = await User.find();
+    let html = `<a href="/logout">Salir</a><table><thead><tr><th>Name</th><th>Email</th></tr></thead><tbody>`;
+    users.forEach((user) => {
+      html += `<tr><td>${user.name}</td><td>${user.email}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    res.send(html);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/login", (req, res) => {
@@ -80,7 +85,7 @@ app.get("/login", (req, res) => {
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
+  user = await User.findOne({ email });
   if (password === user?.password) {
     message = "";
     res.redirect("/");
@@ -90,8 +95,8 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.get("/logout",(req, res) => {
+app.get("/logout", (req, res) => {
   res.redirect("/login");
-})
+});
 
 app.listen(3000, () => console.log("Listening on port 3000"));
