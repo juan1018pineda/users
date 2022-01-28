@@ -23,6 +23,8 @@ const schema = {
 //Model
 const User = mongoose.model("users", schema);
 
+let message = "";
+
 //Controler
 app.get("/register", (req, res) => {
   res.send(
@@ -47,18 +49,49 @@ app.post("/register", (req, res) => {
   const user = new User(newUser);
   user.save((err, user) => {
     if (err) res.sendStatus(500);
-    res.redirect('/');
+    res.redirect("/");
   });
 });
 
 app.get("/", async (req, res) => {
   const users = await User.find();
-  let html = `<a href="/register">Registrarse</a><table><thead><tr><th>Name</th><th>Email</th></tr></thead><tbody>`;
+  let html = `<a href="/logout">Salir</a><table><thead><tr><th>Name</th><th>Email</th></tr></thead><tbody>`;
   users.forEach((user) => {
     html += `<tr><td>${user.name}</td><td>${user.email}</td></tr>`;
   });
   html += `</tbody></table>`;
   res.send(html);
 });
+
+app.get("/login", (req, res) => {
+  res.send(
+    `<p>${message}</p><form method='POST' action='/login'>
+          <label for="email">Email
+          <input type='email'name="email" id="email" />
+          </label>
+          <label for="password">Contraseña
+          <input type='password'name="password" id="password"/>
+          </label>
+          <button type='submit'>Ingresar</button> 
+          </form>
+          <a href="/register">Registrarse</a>`
+  );
+});
+
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+  if (password === user?.password) {
+    message = "";
+    res.redirect("/");
+  } else {
+    message = "Wrong email or password. Try again!";
+    res.redirect("/login");
+  }
+});
+
+app.get("/logout",(req, res) => {
+  res.redirect("/login");
+})
 
 app.listen(3000, () => console.log("Listening on port 3000"));
